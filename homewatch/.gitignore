@@ -1,0 +1,25 @@
+# Secrets — never commit the real one
+.env
+
+# Databases
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.eggs/
+*.egg-info/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
