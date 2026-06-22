@@ -1,0 +1,20 @@
+{# Reusable presentation macros. Reused by the dashboard now and the HTMX
+   partials in Slice 4. #}
+
+{% macro status_pill(status) %}
+  {% set map = {
+    'online':  ('success', 'Online'),
+    'offline': ('secondary', 'Offline'),
+    'unknown': ('warning', 'Unknown'),
+  } %}
+  {% set cls, label = map.get(status, ('warning', 'Unknown')) %}
+  <span class="badge text-bg-{{ cls }}">{{ label }}</span>
+{% endmacro %}
+
+{% macro trust_badge(trusted) %}
+  {% if trusted %}
+    <span class="badge text-bg-success">Trusted</span>
+  {% else %}
+    <span class="badge text-bg-danger">Untrusted</span>
+  {% endif %}
+{% endmacro %}

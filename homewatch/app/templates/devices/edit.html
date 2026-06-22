@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Edit device · HomeWatch{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h1 class="h4 card-title mb-1">Edit device</h1>
+        <p class="text-secondary"><code>{{ device.mac_address }}</code>
+          <span class="small">(MAC is fixed — it identifies the device)</span></p>
+
+        <form method="post"
+              action="{{ url_for('devices.edit', device_id=device.id) }}" novalidate>
+          {{ form.csrf_token }}
+          <div class="mb-3">
+            {{ form.friendly_name.label(class="form-label") }}
+            {{ form.friendly_name(
+                 class="form-control" ~ (" is-invalid" if form.friendly_name.errors else ""),
+                 maxlength="64") }}
+            {% for error in form.friendly_name.errors %}
+              <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+          </div>
+          <div class="mb-3">
+            {{ form.notes.label(class="form-label") }}
+            {{ form.notes(
+                 class="form-control" ~ (" is-invalid" if form.notes.errors else ""),
+                 rows="3", maxlength="1000") }}
+            {% for error in form.notes.errors %}
+              <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+          </div>
+          <div class="form-check mb-3">
+            {{ form.trusted(class="form-check-input") }}
+            {{ form.trusted.label(class="form-check-label") }}
+          </div>
+          <div class="d-flex gap-2">
+            {{ form.submit(class="btn btn-primary") }}
+            <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

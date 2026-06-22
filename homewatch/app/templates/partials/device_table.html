@@ -1,0 +1,69 @@
+{# Inner content of the device-table card. Polled every 15s via HTMX, so it is
+   re-rendered server-side with fresh CSRF tokens each time. #}
+{% from "macros.html" import status_pill, trust_badge %}
+
+<div class="card-header d-flex justify-content-between align-items-center bg-body-tertiary">
+  <span>{{ devices|length }} device(s)</span>
+  <span class="text-secondary small">
+    {% if latest_scan %}
+      last scan {{ latest_scan.scan_time.strftime("%H:%M:%S UTC") }}
+      ({{ latest_scan.devices_found }} found, {{ latest_scan.duration_ms }}ms)
+    {% else %}
+      scanner not run yet
+    {% endif %}
+  </span>
+</div>
+
+<div class="table-responsive">
+  <table class="table table-hover align-middle m-0">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>MAC</th>
+        <th>Vendor</th>
+        <th>IP</th>
+        <th>Status</th>
+        <th>Trust</th>
+        <th class="text-end">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for d in devices %}
+        <tr class="{{ 'table-warning' if not d.trusted else '' }}">
+          <td>{{ d.friendly_name or "—" }}</td>
+          <td><code>{{ d.mac_address }}</code></td>
+          <td class="small text-secondary">{{ d.vendor or "—" }}</td>
+          <td>{{ d.current_ip or "—" }}</td>
+          <td>{{ status_pill(d.status) }}</td>
+          <td>{{ trust_badge(d.trusted) }}</td>
+          <td class="text-end text-nowrap">
+            <form method="post"
+                  action="{{ url_for('devices.toggle_trust', device_id=d.id) }}"
+                  class="d-inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-sm btn-outline-secondary">
+                {{ "Untrust" if d.trusted else "Trust" }}
+              </button>
+            </form>
+            <a href="{{ url_for('devices.edit', device_id=d.id) }}"
+               class="btn btn-sm btn-outline-secondary">Edit</a>
+            <form method="post"
+                  action="{{ url_for('devices.delete', device_id=d.id) }}"
+                  class="d-inline"
+                  onsubmit="return confirm('Delete {{ d.mac_address }}?');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+            </form>
+          </td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="7" class="text-center text-secondary py-5">
+            No devices yet. Add one on the left, or start the scanner
+            (<code>python scheduler.py</code>).
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

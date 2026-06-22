@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · HomeWatch{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 m-0">Devices</h1>
+  <span class="text-secondary small">auto-refreshing every 15s</span>
+</div>
+
+<!-- Unknown devices panel — prominent, top of page, polled. -->
+<div id="unknown-panel"
+     class="mb-4"
+     hx-get="{{ url_for('api.unknown_panel') }}"
+     hx-trigger="every 15s">
+  {% include "partials/unknown_panel.html" %}
+</div>
+
+<div class="row g-4">
+  <!-- Add device form — outside the polled region so it isn't wiped mid-edit. -->
+  <div class="col-lg-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h2 class="h5 card-title mb-3">Add a device</h2>
+        <form method="post" action="{{ url_for('devices.add') }}" novalidate>
+          {{ add_form.csrf_token }}
+          <div class="mb-3">
+            {{ add_form.mac_address.label(class="form-label") }}
+            {{ add_form.mac_address(
+                 class="form-control" ~ (" is-invalid" if add_form.mac_address.errors else ""),
+                 placeholder="a4:83:e7:1b:2c:9d", maxlength="17") }}
+            {% for error in add_form.mac_address.errors %}
+              <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+          </div>
+          <div class="mb-3">
+            {{ add_form.friendly_name.label(class="form-label") }}
+            {{ add_form.friendly_name(
+                 class="form-control" ~ (" is-invalid" if add_form.friendly_name.errors else ""),
+                 placeholder="Living room TV", maxlength="64") }}
+            {% for error in add_form.friendly_name.errors %}
+              <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+          </div>
+          <div class="mb-3">
+            {{ add_form.notes.label(class="form-label") }}
+            {{ add_form.notes(
+                 class="form-control" ~ (" is-invalid" if add_form.notes.errors else ""),
+                 rows="2", maxlength="1000") }}
+            {% for error in add_form.notes.errors %}
+              <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+          </div>
+          <div class="form-check mb-3">
+            {{ add_form.trusted(class="form-check-input") }}
+            {{ add_form.trusted.label(class="form-check-label") }}
+          </div>
+          {{ add_form.submit(class="btn btn-primary w-100") }}
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Device table — polled every 15s; card persists, inner content swaps. -->
+  <div class="col-lg-8">
+    <div class="card shadow-sm"
+         id="device-table"
+         hx-get="{{ url_for('api.device_table') }}"
+         hx-trigger="every 15s">
+      {% include "partials/device_table.html" %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,35 @@
+# HomeWatch scanner — the ONLY privileged component. Needs CAP_NET_RAW for
+# Scapy ARP / ping3 ICMP. Granted via AmbientCapabilities so the capability is
+# scoped to this process at exec time — no setcap on the shared python binary.
+# Install:
+#   sudo cp systemd/homewatch-scanner.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now homewatch-scanner
+[Unit]
+Description=HomeWatch network scanner (privileged: CAP_NET_RAW)
+After=network.target
+
+[Service]
+Type=simple
+User=homewatch
+Group=homewatch
+WorkingDirectory=/opt/homewatch
+EnvironmentFile=/opt/homewatch/.env
+Environment=HOMEWATCH_SCAN_BACKEND=scapy
+ExecStart=/opt/homewatch/.venv/bin/python scheduler.py
+Restart=on-failure
+RestartSec=5
+
+# Grant only the raw-socket capabilities, nothing more.
+AmbientCapabilities=CAP_NET_RAW CAP_NET_ADMIN
+CapabilityBoundingSet=CAP_NET_RAW CAP_NET_ADMIN
+
+# Hardening
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/homewatch
+ProtectKernelTunables=true
+ProtectControlGroups=true
+
+[Install]
+WantedBy=multi-user.target

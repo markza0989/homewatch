@@ -1,0 +1,36 @@
+{# "Unknown devices" panel. Polled every 15s. Untrusted devices are the
+   security signal — a new device on the LAN shows here within ~60s of joining. #}
+{% if unknown %}
+  <div class="card border-danger shadow-sm">
+    <div class="card-header bg-danger text-white d-flex align-items-center gap-2">
+      <span class="fs-5">⚠️</span>
+      <strong>{{ unknown|length }} unknown / untrusted device(s)</strong>
+    </div>
+    <ul class="list-group list-group-flush">
+      {% for d in unknown %}
+        <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div>
+            <span class="badge text-bg-danger me-2">NEW / UNTRUSTED</span>
+            <code>{{ d.mac_address }}</code>
+            {% if d.vendor %}<span class="text-secondary small">· {{ d.vendor }}</span>{% endif %}
+            {% if d.current_ip %}<span class="text-secondary small">· {{ d.current_ip }}</span>{% endif %}
+            <span class="text-secondary small">· first seen {{ d.first_seen.strftime("%Y-%m-%d %H:%M UTC") }}</span>
+          </div>
+          <div class="d-flex gap-2">
+            <form method="post" action="{{ url_for('devices.toggle_trust', device_id=d.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-sm btn-success">Trust</button>
+            </form>
+            <a href="{{ url_for('devices.edit', device_id=d.id) }}"
+               class="btn btn-sm btn-outline-secondary">Investigate</a>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+{% else %}
+  <div class="alert alert-success d-flex align-items-center gap-2 mb-0" role="alert">
+    <span class="fs-5">✓</span>
+    <span>All devices on the network are trusted. No unknown devices.</span>
+  </div>
+{% endif %}

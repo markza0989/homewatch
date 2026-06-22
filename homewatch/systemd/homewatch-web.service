@@ -1,0 +1,34 @@
+# HomeWatch web app — UNPRIVILEGED. Runs gunicorn; never needs raw sockets.
+# Install:
+#   sudo cp systemd/homewatch-web.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now homewatch-web
+# Adjust User/paths to match your install (assumed: /opt/homewatch, user homewatch).
+[Unit]
+Description=HomeWatch web app (unprivileged)
+After=network.target
+
+[Service]
+Type=simple
+User=homewatch
+Group=homewatch
+WorkingDirectory=/opt/homewatch
+EnvironmentFile=/opt/homewatch/.env
+ExecStart=/opt/homewatch/.venv/bin/gunicorn --workers 2 \
+    --bind ${HOMEWATCH_BIND}:${HOMEWATCH_PORT} wsgi:application
+Restart=on-failure
+RestartSec=3
+
+# Hardening — this process handles untrusted input, so lock it down.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/homewatch
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+# The web app must never gain raw-socket capability.
+CapabilityBoundingSet=
+
+[Install]
+WantedBy=multi-user.target
